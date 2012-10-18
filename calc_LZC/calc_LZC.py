@@ -2,7 +2,14 @@ import numpy as np
 import pickle,warnings
 
 ## Load diagnostic calibration data
-LZCp=pickle.load(open('LZCpar.p','r'))
+try:
+     import pkgutil
+     data = pkgutil.get_data(__name__, 'calc_LZC/LZCpar.p')
+except ImportError:
+     import pkg_resources
+     data = pkg_resources.resource_string(__name__, 'calc_LZC/LZCpar.p')
+LZCp=pickle.load(open(data,'r'))
+
 
 def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',N=1000):
     """
