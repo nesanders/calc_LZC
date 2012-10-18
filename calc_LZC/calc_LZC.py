@@ -57,7 +57,7 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
     MCphot_2=ones([len(phot[M]),N])
     MCphot_3=ones([len(phot[M]),N])
     for i in range(len(phot[M])):
-        if phot['d'+M]==None: 
+        if phot['d'+M]==[None]: 
             MCphot_1[i]*=phot[M][i]
             MCphot_2[i]*=phot[col[0]][i]
             MCphot_3[i]*=phot[col[1]][i]
