@@ -2,7 +2,7 @@ import numpy as np
 import pickle,warnings
 
 ## Load diagnostic calibration data
-LZCpar=pickle.load(open(LZCpar.p,'r'))
+LZCp=pickle.load(open('LZCpar.p','r'))
 
 def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',N=1000):
     """
@@ -13,8 +13,8 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
     will be performed and uncertainties will be returned
     
     Keyword arguments:
-    g,r,i -- K-corrected galaxy absolute magnitudes in Sloan filters (1D arrays)
-    dg,dr,di -- Corresponding photometric uncertainties  (1D arrays)
+    g,r,i -- K-corrected galaxy absolute magnitudes in Sloan filters (floats or 1D arrays)
+    dg,dr,di -- Corresponding photometric uncertainties  (floats or 1D arrays)
     M -- gri band to use as luminosity (default 'g')
     col -- gri color to use (default 'gr', meaning g-r)
     diag -- Metallicity diagnostic to return result in (default 'T04', options below)
@@ -37,6 +37,8 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
         (nan if dg,dr,di not specified).    Think of this as a statistical uncertainty.
     * disp: Intrinsic scatter (standard deviation of Metallicity residuals) for this 
         calibration of the LZC.  Think of this as a systematic uncertainty.
+    * warnings: A binary array indicating if (0) the galaxy is in the calibrated mu range
+       or (1) the galaxy is outside the calibrated range and the LZC was extrapolated
     
     For more information: https://www.cfa.harvard.edu/~nsanders/papers/LZC/summary.htm
     """
@@ -44,15 +46,21 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
     balpha,disp0,dispb,p,disp,mu_min,mu_max=LZCp[diag][M][col]
     ## Load input data
     phot={'g':g,'r':r,'i':i,'dg':dg,'dr':dr,'di':di}
+    # If inputs aren't lists, convert them
+    for key in phot:
+        try:
+            phot[key][0]
+        except (TypeError) as e:
+            phot[key]=array([phot[key]])
     ## Establish Monte Carlo samples
     MCphot_1=ones([len(phot[M]),N])
     MCphot_2=ones([len(phot[M]),N])
     MCphot_3=ones([len(phot[M]),N])
     for i in range(len(phot[M])):
-        if phot['d'+M][i]==None: 
-            MCphot_1[i]*=phot['d'+M][i]
-            MCphot_2[i]*=phot['d'+col[0]][i]
-            MCphot_3[i]*=phot['d'+col[1]][i]
+        if phot['d'+M]==None: 
+            MCphot_1[i]*=phot[M][i]
+            MCphot_2[i]*=phot[col[0]][i]
+            MCphot_3[i]*=phot[col[1]][i]
         else: 
             MCphot_1[i]=np.random.normal(phot[M][i],phot['d'+M][i],N)
             MCphot_2[i]=np.random.normal(phot[col[0]][i],phot['d'+col[0]][i],N)
@@ -64,10 +72,10 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
     Z=median(MC_Z,axis=1)
     dZ=std(MC_Z,axis=1)
     ## Replace entries without uncertainty with nan
-    sel=where(dZ==0)
+    sel=where(dZ<1e-7)
     dZ[sel]=[nan]*len(sel[0])
     ##Issue warnings if outside of calibrated range
-    warn=where(((median(mu,axis=1)>mu_min) & (median(mu,axis=1)<mu_max))==False)[0]
-    if len(warn)>0: warnings.warn('The following objects are outside the calibrated LZC range:\n'+'\n'.join(warn.astype('str')))
-    return Z,dZ,dispb
+    warn=(((median(mu,axis=1)>mu_min) & (median(mu,axis=1)<mu_max))==False)*1
+    #if len(warn)>0: warnings.warn('The following objects are outside the calibrated LZC range:\n'+'\n'.join(warn.astype('str')))
+    return Z,dZ,dispb,warn
     
