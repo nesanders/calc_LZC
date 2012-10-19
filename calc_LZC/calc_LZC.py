@@ -25,7 +25,8 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
     M -- gri band to use as luminosity (default 'g')
     col -- gri color to use (default 'gr', meaning g-r)
     diag -- Metallicity diagnostic to return result in (default 'T04', options below)
-    N -- Number of Monte Carlo samples to use for uncertainty calculation (default 1000)
+    N -- Number of Monte Carlo samples to use for uncertainty calculation (default 1000 
+        or 1 if uncertainties not given)
     
     Available metallicity diagnostics:
     * M91
@@ -59,7 +60,8 @@ def cLZC(g=None,r=None,i=None,dg=None,dr=None,di=None,M='g',col='gr',diag='T04',
             phot[key][0]
         except (TypeError) as e:
             phot[key]=array([phot[key]])
-    ## Establish Monte Carlo samples
+    ## Establish Monte Carlo samples, if uncertainties are given
+    phot['d'+M]==[None]: N=1
     MCphot_1=ones([len(phot[M]),N])
     MCphot_2=ones([len(phot[M]),N])
     MCphot_3=ones([len(phot[M]),N])
