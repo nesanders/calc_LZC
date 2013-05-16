@@ -12,7 +12,7 @@ import pickle,os
 #LZCp=pickle.load(data)
 
 #LZCp=pickle.load(open(os.path.dirname(__file__)+'/LZCpar.p' ,'r'))
-LZCp=np.load('LZC2_all.npy')
+LZCp=np.load(os.path.dirname(__file__)+'/LZC2_all.npy')
 
 def cLZC(u=None,g=None,r=None,i=None,z=None,du=None,dg=None,dr=None,di=None,dz=None,M='g',col='r',diag='T04',pmeth='model',N=1000):
     """
